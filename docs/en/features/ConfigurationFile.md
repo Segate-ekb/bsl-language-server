@@ -37,6 +37,7 @@ If there is no configuration file, an attempt will be made to find the ".bsl-lan
 | `siteRoot`                                                     |          `String`          | The path to the root of the site with the documentation. By default, the parameter value is `"https://1c-syntax.github.io/bsl-language-server"`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `traceLog`                                                     |          `String`          | To log all requests *(incoming and outgoing)* between **BSL Language Server** and **Language Client** from used editor/IDE, this parameter sets log file path. The path can set either absolute or relative *(from project root)*, by default the value is not set.<br/><br/>**WARNING**<br/><br/>* When starting **BSL Language Server** overwrites this file <br/>* Speed of interaction between client and server **DRAMATICALLY REDUCED**                                                                                                                          |
 | `configurationRoot`                                            |          `String`          | This parameter is intended to indicate the root directory the 1C configuration files are located in the project directory. It can be useful if there are several configuration directories in the same project directory or when the structure of the project directory is so complex. By default, the parameter is empty and `BSL Language Server` determines the location of the configuration root directory independently                                                                                                                                                                                                                                    |
+| `contextExclusions`                                            |     `Array` `String`      | List of regular expressions to exclude files and directories from analysis context. Useful for excluding regulatory reports or other files whose analysis does not provide value. Path is checked relative to `configurationRoot`. By default, the list is empty. Pattern examples:<br/>* `Reports/.*` - exclude all files from Reports directory<br/>* `.*RegulatoryReport.*` - exclude files containing "RegulatoryReport" in their path                                                                                                                                                                                           |
 | `sendErrors`                                                   |          `String`          | Mode for sending error messages to BSL Language Server developers. More [Monitoring](Monitoring.md).Possible values:<br/>* `ask` - ask permission on every error *(set by default)*. <br/>* `send` - always send error messages.<br/>* `never` - never send error messages.                                                                                                                                                                                                                                                                      |
 
 You can use the following JSON schema to make it easier to compile and edit a configuration file:
@@ -58,6 +59,7 @@ Setting example:
   ObjectVersioning"
 * Sets the minimum diagnostic severity level to `Warning`
 * Overrides the diagnostic type `EmptyCodeBlock` to `ERROR` and severity to `BLOCKER`
+* Excludes files from Reports directory and files containing "RegulatoryReport" in their path from analysis context
 
 ```json
 {
@@ -87,9 +89,11 @@ Setting example:
         "ObjectVersioning"
       ]
     }
-  }
+  },
+  "contextExclusions": [
+    "Reports/.*",
+    ".*RegulatoryReport.*"
+  ]
 }
 ```
-  }
-}
 ```

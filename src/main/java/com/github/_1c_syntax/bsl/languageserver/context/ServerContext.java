@@ -56,6 +56,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Контекст сервера - центральное хранилище информации о рабочей области.
@@ -100,11 +102,13 @@ public class ServerContext {
     workDoneProgressReporter.beginProgress(getMessage("populateFindFiles"));
 
     LOGGER.debug("Finding files to populate context...");
-    var files = (List<File>) FileUtils.listFiles(
+    var allFiles = (List<File>) FileUtils.listFiles(
       configurationRoot.toFile(),
       new String[]{"bsl", "os"},
       true
     );
+    
+    var files = filterExcludedFiles(allFiles);
     workDoneProgressReporter.endProgress("");
     populateContext(files);
   }
@@ -345,6 +349,33 @@ public class ServerContext {
 
   private String getMessage(String key) {
     return Resources.getResourceString(languageServerConfiguration.getLanguage(), getClass(), key);
+  }
+
+  private List<File> filterExcludedFiles(List<File> files) {
+    var exclusions = languageServerConfiguration.getContextExclusions();
+    if (exclusions == null || exclusions.isEmpty()) {
+      return files;
+    }
+
+    var patterns = exclusions.stream()
+      .map(Pattern::compile)
+      .collect(Collectors.toList());
+
+    return files.stream()
+      .filter(file -> {
+        var relativePath = configurationRoot.relativize(file.toPath()).toString();
+        var normalizedPath = relativePath.replace('\\', '/');
+        
+        boolean excluded = patterns.stream()
+          .anyMatch(pattern -> pattern.matcher(normalizedPath).find());
+        
+        if (excluded) {
+          LOGGER.debug("File excluded from context: {}", normalizedPath);
+        }
+        
+        return !excluded;
+      })
+      .collect(Collectors.toList());
   }
 
   /**

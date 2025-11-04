@@ -103,6 +103,9 @@ public class LanguageServerConfiguration {
   @Nullable
   private Path configurationRoot;
 
+  @JsonProperty("contextExclusions")
+  private java.util.List<String> contextExclusions = new java.util.ArrayList<>();
+
   @JsonIgnore
   @Setter(value = AccessLevel.NONE)
   private File configurationFile;

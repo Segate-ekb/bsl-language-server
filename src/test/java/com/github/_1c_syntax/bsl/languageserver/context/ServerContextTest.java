@@ -47,6 +47,9 @@ class ServerContextTest {
   @Autowired
   private ServerContext serverContext;
 
+  @Autowired
+  private com.github._1c_syntax.bsl.languageserver.configuration.LanguageServerConfiguration configuration;
+
   @Test
   void testConfigurationMetadata() {
     Path path = Absolute.path(PATH_TO_METADATA);
@@ -122,6 +125,31 @@ class ServerContextTest {
 
     // then
     assertThat(serverContext.getDocuments()).hasSizeGreaterThan(0);
+  }
+
+  @Test
+  void testPopulateContextWithExclusions() {
+    // given
+    Path path = Absolute.path(PATH_TO_METADATA);
+    serverContext.setConfigurationRoot(path);
+    
+    // Load configuration with exclusions
+    configuration.update(new File("./src/test/resources/.context-exclusions-bsl-language-server.json"));
+
+    assertThat(serverContext.getDocuments()).isEmpty();
+
+    // when
+    serverContext.populateContext();
+
+    // then
+    var documents = serverContext.getDocuments();
+    assertThat(documents).isNotEmpty();
+    
+    // Verify that Reports directory files are excluded
+    var reportFiles = documents.keySet().stream()
+      .filter(uri -> uri.toString().contains("Reports/"))
+      .count();
+    assertThat(reportFiles).isEqualTo(0);
   }
 
   private DocumentContext addDocumentContext(ServerContext serverContext, String path) {
