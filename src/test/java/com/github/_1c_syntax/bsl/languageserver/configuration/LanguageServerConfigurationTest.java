@@ -174,4 +174,18 @@ class LanguageServerConfigurationTest {
 
   }
 
+  @Test
+  void testContextExclusions() {
+    // given
+    File configurationFile = new File("./src/test/resources/.context-exclusions-bsl-language-server.json");
+
+    // when
+    configuration.update(configurationFile);
+
+    // then
+    assertThat(configuration.getContextExclusions())
+      .hasSize(2)
+      .contains("Reports/.*", ".*РегламентированныйОтчет.*");
+  }
+
 }

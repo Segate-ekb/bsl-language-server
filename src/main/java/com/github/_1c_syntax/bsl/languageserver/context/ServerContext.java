@@ -281,11 +281,43 @@ public class ServerContext {
     var absoluteURI = Absolute.uri(uri);
 
     var documentContext = documentContextProvider.getObject(absoluteURI);
+    
+    // Check if this file should be excluded from context based on configuration
+    if (configurationRoot != null && shouldExcludeFile(absoluteURI)) {
+      documentContext.setExcludedFromContext(true);
+      LOGGER.debug("File marked as excluded from context: {}", absoluteURI);
+    }
 
     documents.put(absoluteURI, documentContext);
     addMdoRefByUri(absoluteURI, documentContext);
 
     return documentContext;
+  }
+  
+  private boolean shouldExcludeFile(URI uri) {
+    var exclusions = languageServerConfiguration.getContextExclusions();
+    if (exclusions == null || exclusions.isEmpty()) {
+      return false;
+    }
+    
+    try {
+      var file = new java.io.File(uri);
+      var relativePath = configurationRoot.relativize(file.toPath()).toString();
+      var normalizedPath = relativePath.replace('\\', '/');
+      
+      return exclusions.stream()
+        .anyMatch(pattern -> {
+          try {
+            return java.util.regex.Pattern.compile(pattern).matcher(normalizedPath).find();
+          } catch (java.util.regex.PatternSyntaxException e) {
+            LOGGER.warn("Invalid regex pattern in contextExclusions: {}", pattern, e);
+            return false;
+          }
+        });
+    } catch (Exception e) {
+      LOGGER.warn("Error checking if file should be excluded: {}", uri, e);
+      return false;
+    }
   }
 
   private CF computeConfigurationMetadata() {

@@ -1042,6 +1042,21 @@
             "title": "Path to root directory of configuration files.",
             "default": null
         },
+        "contextExclusions": {
+            "$id": "#/properties/contextExclusions",
+            "type": "array",
+            "title": "List of regular expressions to minimize analysis for matching files. Files are parsed for signatures only, saving memory.",
+            "default": [],
+            "items": {
+                "type": "string"
+            },
+            "examples": [
+                [
+                    "Reports/.*",
+                    ".*РегламентированныйОтчет.*"
+                ]
+            ]
+        },
         "sendErrors": {
             "$id": "#/properties/sendErrors",
             "type": "string",

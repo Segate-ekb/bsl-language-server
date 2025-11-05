@@ -127,6 +127,10 @@ public class DocumentContext implements Comparable<DocumentContext> {
   @Getter
   private boolean isComputedDataFrozen;
 
+  @Getter
+  @Setter
+  private boolean isExcludedFromContext;
+
   private final ReentrantLock computeLock = new ReentrantLock();
   private final ReentrantLock diagnosticsLock = new ReentrantLock();
 
@@ -303,6 +307,13 @@ public class DocumentContext implements Comparable<DocumentContext> {
       tokenizer = new BSLTokenizer(content);
       this.version = version;
       symbolTree = computeSymbolTree();
+      
+      // For excluded files, immediately clear content to save memory
+      // Keep only symbol signatures for reference resolution
+      if (isExcludedFromContext && !isComputedDataFrozen) {
+        this.content = null;
+        LOGGER.debug("Cleared content for excluded file: {}", uri);
+      }
 
     } finally {
       computeLock.unlock();
