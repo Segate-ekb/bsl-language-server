@@ -1045,7 +1045,7 @@
         "contextExclusions": {
             "$id": "#/properties/contextExclusions",
             "type": "array",
-            "title": "List of regular expressions to exclude files and directories from analysis context.",
+            "title": "List of regular expressions to minimize analysis for matching files. Files are parsed for signatures only, saving memory.",
             "default": [],
             "items": {
                 "type": "string"
